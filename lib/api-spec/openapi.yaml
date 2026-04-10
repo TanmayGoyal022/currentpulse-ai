@@ -3,13 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CurrentPulse AI - Daily Current Affairs for UPSC/HCS aspirants
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: articles
+    description: News articles and current affairs
+  - name: categories
+    description: GS paper categories
+  - name: bookmarks
+    description: User bookmarks
+  - name: notes
+    description: User notes
+  - name: quiz
+    description: AI-generated quiz
+  - name: dashboard
+    description: Dashboard summary data
 paths:
   /healthz:
     get:
@@ -24,6 +36,305 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /articles:
+    get:
+      operationId: listArticles
+      tags: [articles]
+      summary: List articles
+      description: List all current affairs articles with optional filters
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: date
+          in: query
+          description: ISO date string (YYYY-MM-DD)
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: examRelevance
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+
+  /articles/{id}:
+    get:
+      operationId: getArticle
+      tags: [articles]
+      summary: Get article by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Article details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /articles/today:
+    get:
+      operationId: getTodayArticles
+      tags: [articles]
+      summary: Get today's current affairs
+      description: Returns all articles published today, grouped by category
+      responses:
+        "200":
+          description: Today's articles grouped by category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodayFeed"
+
+  /articles/weekly:
+    get:
+      operationId: getWeeklyArticles
+      tags: [articles]
+      summary: Get weekly compilation
+      parameters:
+        - name: weekOffset
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Weekly articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all GS categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /bookmarks:
+    get:
+      operationId: listBookmarks
+      tags: [bookmarks]
+      summary: List all bookmarks
+      responses:
+        "200":
+          description: List of bookmarks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bookmark"
+    post:
+      operationId: createBookmark
+      tags: [bookmarks]
+      summary: Bookmark an article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookmarkBody"
+      responses:
+        "201":
+          description: Created bookmark
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bookmark"
+
+  /bookmarks/{id}:
+    delete:
+      operationId: deleteBookmark
+      tags: [bookmarks]
+      summary: Remove a bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /notes:
+    get:
+      operationId: listNotes
+      tags: [notes]
+      summary: List all notes
+      responses:
+        "200":
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: createNote
+      tags: [notes]
+      summary: Create a note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNoteBody"
+      responses:
+        "201":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /notes/{id}:
+    patch:
+      operationId: updateNote
+      tags: [notes]
+      summary: Update a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNoteBody"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteNote
+      tags: [notes]
+      summary: Delete a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /quiz:
+    get:
+      operationId: listQuizQuestions
+      tags: [quiz]
+      summary: Get quiz questions
+      description: Get AI-generated quiz questions from recent articles
+      parameters:
+        - name: articleId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: category
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Quiz questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizQuestion"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary
+      description: Returns counts, today stats, and category breakdown
+      responses:
+        "200":
+          description: Dashboard summary data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/trending:
+    get:
+      operationId: getTrendingTopics
+      tags: [dashboard]
+      summary: Get trending topics
+      description: Returns most referenced topics across recent articles
+      responses:
+        "200":
+          description: Trending topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendingTopic"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +345,246 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        source:
+          type: string
+        sourceUrl:
+          type: ["string", "null"]
+        category:
+          type: string
+          description: "One of: polity, economy, environment, international_relations, science_tech"
+        gsMapping:
+          type: string
+          description: "GS1, GS2, GS3, GS4"
+        keyPoints:
+          type: array
+          items:
+            type: string
+        background:
+          type: string
+        analysis:
+          type: string
+        examRelevance:
+          type: string
+          description: "prelims, mains, both"
+        tags:
+          type: array
+          items:
+            type: string
+        publishedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - source
+        - category
+        - gsMapping
+        - keyPoints
+        - background
+        - analysis
+        - examRelevance
+        - tags
+        - publishedAt
+        - createdAt
+
+    TodayFeed:
+      type: object
+      properties:
+        date:
+          type: string
+        totalCount:
+          type: integer
+        byCategory:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/Article"
+      required:
+        - date
+        - totalCount
+        - byCategory
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        gsMapping:
+          type: string
+        articleCount:
+          type: integer
+        description:
+          type: string
+      required:
+        - id
+        - label
+        - gsMapping
+        - articleCount
+        - description
+
+    Bookmark:
+      type: object
+      properties:
+        id:
+          type: integer
+        articleId:
+          type: integer
+        article:
+          $ref: "#/components/schemas/Article"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - articleId
+        - article
+        - createdAt
+
+    CreateBookmarkBody:
+      type: object
+      properties:
+        articleId:
+          type: integer
+      required:
+        - articleId
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+        articleId:
+          type: ["integer", "null"]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - content
+        - createdAt
+        - updatedAt
+
+    CreateNoteBody:
+      type: object
+      properties:
+        articleId:
+          type: ["integer", "null"]
+        content:
+          type: string
+      required:
+        - content
+
+    UpdateNoteBody:
+      type: object
+      properties:
+        content:
+          type: string
+
+    QuizQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+        articleId:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctAnswer:
+          type: integer
+          description: "Index of the correct option (0-3)"
+        explanation:
+          type: string
+        difficulty:
+          type: string
+          description: "easy, medium, hard"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - articleId
+        - question
+        - options
+        - correctAnswer
+        - explanation
+        - difficulty
+        - createdAt
+
+    DashboardSummary:
+      type: object
+      properties:
+        todayCount:
+          type: integer
+        weekCount:
+          type: integer
+        totalBookmarks:
+          type: integer
+        totalNotes:
+          type: integer
+        categoryBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              count:
+                type: integer
+            required:
+              - category
+              - count
+        recentArticles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Article"
+      required:
+        - todayCount
+        - weekCount
+        - totalBookmarks
+        - totalNotes
+        - categoryBreakdown
+        - recentArticles
+
+    TrendingTopic:
+      type: object
+      properties:
+        topic:
+          type: string
+        count:
+          type: integer
+        category:
+          type: string
+      required:
+        - topic
+        - count
+        - category
