@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "78nChoxP86thoEUy_5LzT"
+uri = "file://artifacts/currentpulse-mobile/assets/images/icon.png"
+type = "image"
+title = "generated_image"
